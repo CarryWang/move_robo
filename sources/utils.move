@@ -1,8 +1,6 @@
 module move_robo::utils {
-    use std::string::{Self, String};
     use std::hash;
-
-
+    
     /// Generating the robo's serial number.
     public(package) fun gen_robo_serial_number(id: &UID): u64 {
         // hashing on the robo's UID.

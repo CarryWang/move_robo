@@ -1,9 +1,8 @@
 module move_robo::core {
-    use std::u64::divide_and_round_up;
+    use std::u64::{divide_and_round_up, pow};
     use sui::clock;
     use sui::clock::Clock;
     use sui::dynamic_field;
-    use sui::math;
     use sui::tx_context::sender;
     use move_robo::utils;
 
@@ -197,13 +196,14 @@ module move_robo::core {
         let final_energies = robo_data.military.energies + count;
 
         // 3. check treasury sufficiency
-        let total_soldier_price = ENERGY_PRICE * count;
+        let total_energy_price = ENERGY_PRICE * count;
+        assert!(robo_data.economy.treasury >= total_energy_price, EInsufficientTreasury);
 
         // 4. settle economy
         settle_robo_economy_inner(clock, robo_data);
 
         // 5. update treasury and energies
-        robo_data.economy.treasury = robo_data.economy.treasury - total_soldier_price;
+        robo_data.economy.treasury = robo_data.economy.treasury - total_energy_price;
         robo_data.military.energies = final_energies;
 
         // 6. update energy economic power buff
@@ -442,7 +442,7 @@ module move_robo::core {
     fun calculate_robo_base_economic_power(robo_data: &RoboData): u64 {
         let initial_base_power = BASE_ECONOMIC_POWER;
         let level = robo_data.level;
-        math::divide_and_round_up(initial_base_power * 12 * math::pow(10, ((level - 1) as u8)), 10)
+        divide_and_round_up(initial_base_power * 12 * pow(10, ((level - 1) as u8)), 10)
     }
 
 
@@ -452,12 +452,12 @@ module move_robo::core {
     fun calculate_robo_base_attack_defense_power(robo_data: &RoboData): (u64, u64) {
         let factor = 2;
         let (initial_attack, initial_defense) = get_initial_attack_defense_power(robo_data.nature);
-        let attack_power = math::divide_and_round_up(
-            factor * initial_attack * 12 * math::pow(10, ((robo_data.level - 1) as u8)),
+        let attack_power = divide_and_round_up(
+            factor * initial_attack * 12 * pow(10, ((robo_data.level - 1) as u8)),
             10
         );
-        let defense_power = math::divide_and_round_up(
-            factor * initial_defense * 12 * math::pow(10, ((robo_data.level - 1) as u8)),
+        let defense_power = divide_and_round_up(
+            factor * initial_defense * 12 * pow(10, ((robo_data.level - 1) as u8)),
             10
         );
         (attack_power, defense_power)
@@ -511,7 +511,7 @@ module move_robo::core {
 
     /// 每场战斗中获得的经验值，根据1-10的等级
     const BATTLE_EXP_GAIN_LEVELS: vector<u64> = vector[25, 30, 40, 55, 75, 100, 130, 165, 205, 250];
-    
+
     /// 升级到2-10级需要的经验值
     const REQUIRED_EXP_LEVELS: vector<u64> = vector[100, 150, 225, 338, 507, 760, 1140, 1709, 2563];
 }
