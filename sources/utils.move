@@ -1,6 +1,6 @@
 module move_robo::utils {
     use std::hash;
-    
+
     /// Generating the robo's serial number.
     public(package) fun gen_robo_serial_number(id: &UID): u64 {
         // hashing on the robo's UID.
@@ -17,6 +17,10 @@ module move_robo::utils {
         result_num = result_num % 100000u64;
 
         result_num
+    }
+
+    public(package) fun gen_robo_image_id(id: &UID): address {
+        object::uid_to_address(id)
     }
 
     public(package) fun random_in_range(range: u64, ctx: &mut TxContext): u64 {

@@ -19,7 +19,8 @@ module move_robo::robo {
         id: UID,
         name: String,
         description: String,
-        serial_number: u64
+        serial_number: u64,
+        image_id: address
     }
 
     /// Event - robo built
@@ -40,8 +41,8 @@ module move_robo::robo {
 
         let values = vector[
             utf8(b"{name}"),
-            utf8(b"https://robohash.org/{serial_number}"),
-            utf8(b"https://robohash.org/{serial_number}.png"),
+            utf8(b"https://robohash.org/{image_id}"),
+            utf8(b"https://robohash.org/{image_id}.png"),
             utf8(b"{description}"),
             utf8(b"https://github.com/CarryWang/move_robo"),
             utf8(b"Carry Wang"),
@@ -55,7 +56,7 @@ module move_robo::robo {
         transfer::public_transfer(publisher, sender(ctx));
         transfer::public_transfer(display, sender(ctx));
     }
-    
+
     /// 创造机器人
     entry fun create_robo(
         name_bytes: vector<u8>,
@@ -70,12 +71,15 @@ module move_robo::robo {
         // generate serial number.
         let serial_number = utils::gen_robo_serial_number(&obj_uid);
 
+        let image_id = utils::gen_robo_image_id(&obj_uid);
+
         // new robo object.
         let robo = Robo {
             id: obj_uid,
             name: string::utf8(name_bytes),
             description: string::utf8(desc_bytes),
             serial_number,
+            image_id
         };
 
         // new robo game data
